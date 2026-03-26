@@ -595,6 +595,7 @@ SIGNAL embedding emb { threshold: 0.75 candidates: ["test"] }
 SIGNAL domain dom { description: "test" mmlu_categories: ["math"] }
 SIGNAL fact_check fc { description: "fact check" }
 SIGNAL user_feedback uf { description: "feedback" }
+SIGNAL reask ra { description: "repeat question" threshold: 0.8 lookback_turns: 2 }
 SIGNAL preference pref { description: "preference" threshold: 0.7 examples: ["keep it concise", "bullet points only"] }
 SIGNAL language lang { description: "English" }
 SIGNAL context ctx { min_tokens: "1K" max_tokens: "32K" }
@@ -621,6 +622,12 @@ SIGNAL authz auth { role: "admin" subjects: [{ kind: "User", name: "admin" }] }
 	}
 	if len(cfg.UserFeedbackRules) != 1 {
 		t.Errorf("expected 1 user_feedback rule, got %d", len(cfg.UserFeedbackRules))
+	}
+	if len(cfg.ReaskRules) != 1 {
+		t.Errorf("expected 1 reask rule, got %d", len(cfg.ReaskRules))
+	}
+	if cfg.ReaskRules[0].Threshold != 0.8 || cfg.ReaskRules[0].LookbackTurns != 2 {
+		t.Errorf("unexpected reask config: %+v", cfg.ReaskRules[0])
 	}
 	if len(cfg.PreferenceRules) != 1 {
 		t.Errorf("expected 1 preference rule, got %d", len(cfg.PreferenceRules))
@@ -2324,6 +2331,7 @@ SIGNAL embedding emb { threshold: 0.75 candidates: ["test"] aggregation_method: 
 SIGNAL domain dom { description: "test" mmlu_categories: ["math"] }
 SIGNAL fact_check fc { description: "fact check" }
 SIGNAL user_feedback uf { description: "feedback" }
+SIGNAL reask ra { description: "repeat question" threshold: 0.8 lookback_turns: 2 }
 SIGNAL preference pref { description: "preference" threshold: 0.7 examples: ["keep it concise", "bullet points only"] }
 SIGNAL language lang { description: "English" }
 SIGNAL context ctx { min_tokens: "1K" max_tokens: "32K" }
@@ -2366,6 +2374,12 @@ ROUTE test_route {
 	}
 	if len(rt.UserFeedbackRules) != 1 {
 		t.Errorf("user_feedback rules: %d", len(rt.UserFeedbackRules))
+	}
+	if len(rt.ReaskRules) != 1 {
+		t.Errorf("reask rules: %d", len(rt.ReaskRules))
+	}
+	if rt.ReaskRules[0].Threshold != 0.8 || rt.ReaskRules[0].LookbackTurns != 2 {
+		t.Errorf("unexpected reask round-trip: %+v", rt.ReaskRules[0])
 	}
 	if len(rt.PreferenceRules) != 1 {
 		t.Errorf("preference rules: %d", len(rt.PreferenceRules))
@@ -3273,6 +3287,7 @@ SIGNAL embedding emb { threshold: 0.75 candidates: ["test"] }
 SIGNAL domain dom { description: "test" mmlu_categories: ["math"] }
 SIGNAL fact_check fc { description: "fact check" }
 SIGNAL user_feedback uf { description: "feedback" }
+SIGNAL reask ra { description: "repeat question" threshold: 0.8 lookback_turns: 2 }
 SIGNAL preference pref { description: "preference" threshold: 0.7 examples: ["keep it concise", "bullet points only"] }
 SIGNAL language lang { description: "English" }
 SIGNAL context ctx { min_tokens: "1K" max_tokens: "32K" }
@@ -3293,7 +3308,7 @@ ROUTE test_route { PRIORITY 1 WHEN domain("dom") MODEL "m:1b" }
 
 	expectedSignals := []string{
 		"SIGNAL domain dom", "SIGNAL keyword kw", "SIGNAL embedding emb",
-		"SIGNAL fact_check fc", "SIGNAL user_feedback uf",
+		"SIGNAL fact_check fc", "SIGNAL user_feedback uf", "SIGNAL reask ra",
 		"SIGNAL preference pref", "SIGNAL language lang",
 		"SIGNAL context ctx", "SIGNAL complexity comp",
 		"SIGNAL modality mod", "SIGNAL authz auth",
@@ -3308,6 +3323,9 @@ ROUTE test_route { PRIORITY 1 WHEN domain("dom") MODEL "m:1b" }
 	}
 	if !strings.Contains(dslText, `examples: ["keep it concise", "bullet points only"]`) {
 		t.Error("decompiled DSL missing preference examples")
+	}
+	if !strings.Contains(dslText, `lookback_turns: 2`) {
+		t.Error("decompiled DSL missing reask lookback_turns")
 	}
 }
 

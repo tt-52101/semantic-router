@@ -65,6 +65,7 @@ export const monarchTokens: monacoNs.languages.IMonarchLanguage = {
 
   signalTypes: [
     'keyword', 'embedding', 'domain', 'fact_check', 'user_feedback',
+    'reask',
     'preference', 'language', 'context', 'structure', 'complexity', 'modality', 'authz',
   ],
 
@@ -107,7 +108,7 @@ export const monarchTokens: monacoNs.languages.IMonarchLanguage = {
 
       // Signal types (after SIGNAL keyword)
       [
-        /\b(keyword|embedding|domain|fact_check|user_feedback|preference|language|context|structure|complexity|modality|authz)\b/,
+        /\b(keyword|embedding|domain|fact_check|user_feedback|reask|preference|language|context|structure|complexity|modality|authz)\b/,
         'type',
       ],
 
@@ -203,6 +204,7 @@ const SIGNAL_TYPE_SUGGESTIONS = [
   { label: 'domain', detail: 'Domain classification signal' },
   { label: 'fact_check', detail: 'Fact-checking signal' },
   { label: 'user_feedback', detail: 'User feedback signal' },
+  { label: 'reask', detail: 'Repeated-question dissatisfaction signal' },
   { label: 'preference', detail: 'User preference signal' },
   { label: 'language', detail: 'Language detection signal' },
   { label: 'context', detail: 'Context length signal' },
